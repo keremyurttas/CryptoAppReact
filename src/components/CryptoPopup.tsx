@@ -9,6 +9,9 @@ const CryptoPopup: React.FC<CrytopPopupProps> = ({ onClose }) => {
   const currencies = useSelector(
     (state: RootState) => state.currencySlice
   ).allCurrencies;
+  const inventory = useSelector(
+    (state: RootState) => state.currencySlice
+  ).inventory;
   // console.log(currencies.slice());
   return (
     <section className="w-screen h-screen overflow-hidden flex items-center justify-center absolute top-0 right-0 z-10 p-2">
@@ -27,12 +30,16 @@ const CryptoPopup: React.FC<CrytopPopupProps> = ({ onClose }) => {
 
         <div className="space-y-4 overflow-auto h-[80%]">
           {/* {Object.values(currencies) + 'asdsad'} */}
+
           {currencies.map((element, index: number) => (
             <CryptoCurrency
               key={index}
-              ownedAmount={0}
+              ownedAmount={
+                inventory.find((ownedC) => ownedC.symbol == element.symbol)
+                  ?.ownedAmount || 0
+              }
               symbol={element.symbol}
-              price={element.openPrice}
+              price={element.price}
             />
           ))}
         </div>
