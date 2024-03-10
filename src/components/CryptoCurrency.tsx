@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   addToInventory,
@@ -18,6 +18,10 @@ const CryptoCurrency: React.FC<CryptoCurrencyProps> = ({
 }) => {
   const [amountInput, setAmountInput] = useState<number>(ownedAmount);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    setAmountInput(ownedAmount);
+  }, [ownedAmount]);
 
   return (
     <section className="p-4 border flex rounded-lg justify-between w-full items-center relative">
@@ -48,9 +52,10 @@ const CryptoCurrency: React.FC<CryptoCurrencyProps> = ({
               Update
             </button>
             <button
-              onClick={() =>
-                dispatch(updateOwnedAmount({ symbol, ownedAmount: 0 }))
-              }
+              onClick={() => {
+                dispatch(updateOwnedAmount({ symbol, ownedAmount: 0 }));
+                setAmountInput(0);
+              }}
               className="custom-button bg-red-500"
             >
               Remove
@@ -59,11 +64,11 @@ const CryptoCurrency: React.FC<CryptoCurrencyProps> = ({
         ) : (
           <div className="flex items-center justify-center">
             <button
-              onClick={() =>
+              onClick={() => {
                 dispatch(
                   addToInventory({ symbol, ownedAmount: amountInput, price })
-                )
-              }
+                );
+              }}
               className="custom-button bg-green-500"
             >
               Add

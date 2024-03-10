@@ -15,6 +15,7 @@ interface OwnedCurrency {
   ownedAmount: number;
   price: string;
 }
+
 const initialState: InitialState = {
   inventory: [],
   allCurrencies: [],
@@ -41,11 +42,16 @@ const currencySlice = createSlice({
   name: "currency",
   initialState,
   reducers: {
+    fetchInventoryFromLocalStorage: (state) => {
+      const storedInventory = localStorage.getItem("inventory");
+      state.inventory = storedInventory ? JSON.parse(storedInventory) : [];
+    },
     addToInventory: (state, action: PayloadAction<OwnedCurrency>) => {
       const { symbol, ownedAmount, price } = action.payload;
       if (ownedAmount > 0) {
         const newCurrency: OwnedCurrency = { symbol, ownedAmount, price };
         state.inventory = [...state.inventory, newCurrency];
+        localStorage.setItem("inventory", JSON.stringify(state.inventory));
       }
     },
     updateOwnedAmount: (state, action) => {
@@ -54,18 +60,26 @@ const currencySlice = createSlice({
         (curr) => symbol == curr.symbol
       );
       if (ownedAmount === 0) {
+        // state.inventory[currencyToUpdateIndex].ownedAmount = 0;
         state.inventory = state.inventory.filter(
           (currency) => currency.symbol !== symbol
         );
       } else {
-        // console.log(currencyToUpdate)
         state.inventory = state.inventory.map((currency, index) =>
           index === currencyToUpdateIndex
             ? { ...currency, ownedAmount }
             : currency
         );
       }
+      localStorage.setItem("inventory", JSON.stringify(state.inventory));
     },
+    // searchByKey: (state, key) => {
+    //   return state.allCurrencies.filter((currency) =>
+    //     currency.symbol
+    //       .toLocaleLowerCase()
+    //       .includes(key.payload.toLocaleLowerCase())
+    //   );
+    // },
   },
   extraReducers: (builder) => {
     builder
@@ -73,25 +87,11 @@ const currencySlice = createSlice({
         console.log("waiting");
       })
       .addCase(fetchData.fulfilled, (state, action) => {
+        console.log(action.payload);
         state.allCurrencies = action.payload.map((curr: any) => ({
           price: curr.openPrice,
           symbol: curr.symbol,
         }));
-        // state.allCurrencies = action.payload.map((curr: any) => {
-        //   const isOwned = state.inventory.find(
-        //     (ownedCurrency) => ownedCurrency.symbol === curr.symbol
-        //   );
-        //   return isOwned
-        //     ? {
-        //         price: curr.openPrice,
-        //         symbol: curr.symbol,
-        //         ownedAmount: isOwned.ownedAmount,
-        //       }
-        //     : {
-        //         price: curr.openPrice,
-        //         symbol: curr.symbol,
-        //       };
-        // });
       });
   },
 });
@@ -104,8 +104,12 @@ export const fetchData = createAsyncThunk("fetchData", async () => {
 
   const data = await response.json();
 
-  return data;
+  return data.filter((currency: any) => currency.firstId !== -1);
 });
 
-export const { addToInventory, updateOwnedAmount } = currencySlice.actions;
+export const {
+  addToInventory,
+  updateOwnedAmount,
+  fetchInventoryFromLocalStorage,
+} = currencySlice.actions;
 export default currencySlice.reducer;
