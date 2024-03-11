@@ -11,20 +11,16 @@ export default function InventorySide() {
     (state: RootState) => state.currencySlice
   ).allCurrencies;
 
-  function getCurrentPrice(symbol: string) {
-    return currencies.find((curr) => curr.symbol == symbol)?.price || "0";
-  }
-
   return (
-    <>
-      {inventory.map((currency) => (
+    <div className="space-y-2 overflow-auto md:h-[100%] min:h-[20%] max-w-[95%]">
+      {inventory.map(({ symbol, price, ownedAmount }) => (
         <CryptoCurrency
-          symbol={currency.symbol}
-          price={getCurrentPrice(currency.symbol)}
-          ownedAmount={currency.ownedAmount}
-          key={currency.symbol}
+          symbol={symbol}
+          price={price}
+          ownedAmount={ownedAmount}
+          key={symbol}
         />
       ))}
-    </>
+    </div>
   );
 }

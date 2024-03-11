@@ -7,7 +7,7 @@ import {
 
 interface CryptoCurrencyProps {
   symbol: string;
-  price: string;
+  price: number;
   ownedAmount: number;
 }
 
@@ -23,30 +23,49 @@ const CryptoCurrency: React.FC<CryptoCurrencyProps> = ({
     setAmountInput(ownedAmount);
   }, [ownedAmount]);
 
+  function formatNumber(price: number) {
+    const number = Number(price);
+    if (number >= 1 || number <= -1) {
+      // For numbers greater than or equal to 1 (or less than or equal to -1)
+      return number.toFixed(2); // Show 2 decimal places
+    } else {
+      // For numbers between 0 and 1 (exclusive)
+      return number.toString(); // Show all decimal places
+    }
+  }
+
   return (
-    <section className="p-4 border flex rounded-lg justify-between w-full items-center relative">
+    <section className="md:p-4 px-2 py-3 border flex rounded-lg justify-between w-full items-center relative">
       <div>
         <h1>{symbol}</h1>
-        <span> {price}</span>
+        <p className=""> {formatNumber(price)}</p>
       </div>
-      <div className="flex items-center justify-between w-1/3">
+      <div className="flex items-center justify-between md:w-2/5 gap-1">
         <input
-          className="rounded-md w-16 border-2 px-4 border-black relative h-8"
+          className="rounded-md border-2 p-2 w-16 border-black relative h-8"
           type="number"
           name=""
           id=""
           value={amountInput}
-          onChange={(e) => setAmountInput(parseFloat(e.target.value))}
+          onChange={(e) => {
+            const inputValue = parseFloat(e.target.value);
+            // Check if the parsed value is a valid number
+            if (!isNaN(inputValue)) {
+              setAmountInput(inputValue);
+            }
+          }}
           min="0"
         />
         {ownedAmount > 0 ? (
-          <div className="gap-4 flex">
+          <div className="md:gap-4 flex gap-1 ">
             <button
-              onClick={() =>
-                dispatch(
-                  updateOwnedAmount({ symbol, ownedAmount: amountInput })
-                )
-              }
+              onClick={() => {
+                typeof amountInput === "number" && !isNaN(amountInput)
+                  ? dispatch(
+                      updateOwnedAmount({ symbol, ownedAmount: amountInput })
+                    )
+                  : alert("Check the amount");
+              }}
               className="custom-button bg-purple-300"
             >
               Update

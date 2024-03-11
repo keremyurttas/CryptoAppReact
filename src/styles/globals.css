@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 .custom-button {
-  @apply md:px-4 md:py-2 rounded-md flex items-center justify-center p-1;
+  @apply md:px-4 md:py-2 rounded-md flex items-center justify-center px-1 py-0.5;
 }

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 interface Currency {
   ownedAmount: number;
   symbol: string;
-  price: string;
+  price: number;
 }
 interface InitialState {
   allCurrencies: Currency[];
@@ -13,7 +13,7 @@ interface InitialState {
 interface OwnedCurrency {
   symbol: string;
   ownedAmount: number;
-  price: string;
+  price: number;
 }
 
 const initialState: InitialState = {
@@ -73,11 +73,19 @@ const currencySlice = createSlice({
       }
       localStorage.setItem("inventory", JSON.stringify(state.inventory));
     },
+
     // searchByKey: (state, key) => {
     //   return state.allCurrencies.filter((currency) =>
     //     currency.symbol
     //       .toLocaleLowerCase()
     //       .includes(key.payload.toLocaleLowerCase())
+    //   );
+    // },
+
+    // getCurrencyPriceBySymbol: (state, action): any => {
+    //   return (
+    //     state.allCurrencies.find((curr) => curr.symbol == action.payload)
+    //       ?.price || "0"
     //   );
     // },
   },
@@ -87,11 +95,17 @@ const currencySlice = createSlice({
         console.log("waiting");
       })
       .addCase(fetchData.fulfilled, (state, action) => {
-        console.log(action.payload);
         state.allCurrencies = action.payload.map((curr: any) => ({
           price: curr.openPrice,
           symbol: curr.symbol,
         }));
+        state.inventory = state.inventory.map((ownedCurrency) => {
+          const currentPrice = state.allCurrencies.find(
+            (currency) => ownedCurrency.symbol === currency.symbol
+          )?.price;
+
+          return { ...ownedCurrency, price: Number(currentPrice) };
+        });
       });
   },
 });
@@ -112,4 +126,5 @@ export const {
   updateOwnedAmount,
   fetchInventoryFromLocalStorage,
 } = currencySlice.actions;
+
 export default currencySlice.reducer;
