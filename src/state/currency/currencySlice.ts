@@ -1,5 +1,4 @@
 import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { useEffect } from "react";
 
 interface Currency {
   ownedAmount: number;
@@ -9,6 +8,7 @@ interface Currency {
 interface InitialState {
   allCurrencies: Currency[];
   inventory: OwnedCurrency[];
+  isLoading: boolean;
 }
 interface OwnedCurrency {
   symbol: string;
@@ -19,24 +19,8 @@ interface OwnedCurrency {
 const initialState: InitialState = {
   inventory: [],
   allCurrencies: [],
+  isLoading: false,
 };
-// useEffect(() => {
-//   initialState.allCurrencies = initialState.allCurrencies.map((curr: any) => {
-//     const isOwned = initialState.inventory.find(
-//       (ownedCurrency) => ownedCurrency.symbol === curr.symbol
-//     );
-//     return isOwned
-//       ? {
-//           price: curr.openPrice,
-//           symbol: curr.symbol,
-//           ownedAmount: isOwned.ownedAmount,
-//         }
-//       : {
-//           price: curr.openPrice,
-//           symbol: curr.symbol,
-//         };
-//   });
-// }, [initialState.inventory]);
 
 const currencySlice = createSlice({
   name: "currency",
@@ -60,7 +44,6 @@ const currencySlice = createSlice({
         (curr) => symbol == curr.symbol
       );
       if (ownedAmount === 0) {
-        // state.inventory[currencyToUpdateIndex].ownedAmount = 0;
         state.inventory = state.inventory.filter(
           (currency) => currency.symbol !== symbol
         );
@@ -73,30 +56,15 @@ const currencySlice = createSlice({
       }
       localStorage.setItem("inventory", JSON.stringify(state.inventory));
     },
-
-    // searchByKey: (state, key) => {
-    //   return state.allCurrencies.filter((currency) =>
-    //     currency.symbol
-    //       .toLocaleLowerCase()
-    //       .includes(key.payload.toLocaleLowerCase())
-    //   );
-    // },
-
-    // getCurrencyPriceBySymbol: (state, action): any => {
-    //   return (
-    //     state.allCurrencies.find((curr) => curr.symbol == action.payload)
-    //       ?.price || "0"
-    //   );
-    // },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchData.pending, () => {
-        console.log("waiting");
+      .addCase(fetchData.pending, (state) => {
+        state.isLoading = true;
       })
       .addCase(fetchData.fulfilled, (state, action) => {
         state.allCurrencies = action.payload.map((curr: any) => ({
-          price: curr.openPrice,
+          price: Number(curr.openPrice),
           symbol: curr.symbol,
         }));
         state.inventory = state.inventory.map((ownedCurrency) => {
@@ -106,19 +74,24 @@ const currencySlice = createSlice({
 
           return { ...ownedCurrency, price: Number(currentPrice) };
         });
+        state.isLoading = false;
       });
   },
 });
 
 export const fetchData = createAsyncThunk("fetchData", async () => {
-  const response = await fetch("https://api2.binance.com/api/v3/ticker/24hr");
-  if (!response.ok) {
-    throw new Error("Failed to fetch data from Binance API");
+  try {
+    const response = await fetch("https://api2.binance.com/api/v3/ticker/24hr");
+    if (!response.ok) {
+      throw new Error("Failed to fetch data from Binance API");
+    }
+
+    const data = await response.json();
+
+    return data.filter((currency: any) => currency.firstId !== -1);
+  } catch (error) {
+    throw error; // Re-throw the error to be handled by the caller
   }
-
-  const data = await response.json();
-
-  return data.filter((currency: any) => currency.firstId !== -1);
 });
 
 export const {

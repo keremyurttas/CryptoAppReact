@@ -8,21 +8,16 @@ interface CrytopPopupProps {
 
 const CryptoPopup: React.FC<CrytopPopupProps> = ({ onClose }) => {
   const [searchInput, setSearchInput] = useState("");
-
-  const currencies = useSelector(
+  const { allCurrencies, inventory } = useSelector(
     (state: RootState) => state.currencySlice
-  ).allCurrencies;
-  const filteredCurrencies = currencies.filter((currency) =>
+  );
+
+  const filteredCurrencies = allCurrencies.filter((currency) =>
     currency.symbol
       .toLocaleLowerCase()
       .includes(searchInput.toLocaleLowerCase())
   );
-  const inventory = useSelector(
-    (state: RootState) => state.currencySlice
-  ).inventory;
-  function handleSearch(e: ChangeEvent<HTMLInputElement>) {
-    setSearchInput(e.target.value);
-  }
+
 
   return (
     <section className="w-screen h-screen overflow-hidden flex items-center justify-center absolute top-0 right-0 z-10 p-2">
@@ -38,7 +33,7 @@ const CryptoPopup: React.FC<CrytopPopupProps> = ({ onClose }) => {
           placeholder="Search a cryptocurrency pair"
           type="text"
           className="w-full rounded-lg p-4 mb-4 border border-black"
-          onChange={handleSearch}
+          onChange={(e) => setSearchInput(e.target.value)}
           value={searchInput}
         />
 
@@ -47,7 +42,7 @@ const CryptoPopup: React.FC<CrytopPopupProps> = ({ onClose }) => {
             <CryptoCurrency
               key={index}
               ownedAmount={
-                inventory.find((ownedC) => ownedC.symbol == element.symbol)
+                inventory.find((ownedC) => ownedC.symbol === element.symbol)
                   ?.ownedAmount || 0
               }
               symbol={element.symbol}
